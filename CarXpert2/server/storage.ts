@@ -1,6 +1,6 @@
 import { db } from './db';
-import { Analytics, SearchHistory } from './db/mongodb';
-import { eq } from 'drizzle-orm';
+import { AIAnalytics, SearchHistory } from './db/mongodb';
+import { eq, and } from 'drizzle-orm';
 import {
   users,
   cars,
@@ -38,8 +38,8 @@ export class Storage {
 
   // Analytics Operations (MongoDB)
   // تسجيل الأحداث الخاصة بالمستخدم للأغراض التحليلية
-async logUserEvent(userId: number, event: string, metadata: any = {}) {
-    return await Analytics.create({ userId, event, metadata });
+  async logUserEvent(userId: number, event: string, metadata: any = {}) {
+    return await AIAnalytics.create({ userId, event, metadata });
   }
 
   async saveSearchHistory(userId: number, query: string, filters: any = {}) {
@@ -61,25 +61,18 @@ async logUserEvent(userId: number, event: string, metadata: any = {}) {
   async removeFavorite(userId: number, carId: number): Promise<void> {
     await db
       .delete(favorites)
-      .where(eq(favorites.userId, userId))
-      .where(eq(favorites.carId, carId));
+      .where(and(eq(favorites.userId, userId), eq(favorites.carId, carId)));
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.username, username));
     return user;
   }
-  async getCars(filters?: Partial<Car>): Promise<Car[]> {
-    let query = db.select().from(cars);
-    if (filters) {
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value !== undefined) {
-          query = query.where(eq(cars[key as keyof typeof cars], value));
-        }
-      });
-    }
-    return await query;
+
+  async getCars(): Promise<Car[]> {
+    return await db.select().from(cars);
   }
+
   async updateCar(id: number, car: Partial<Car>): Promise<Car> {
     const [updatedCar] = await db
       .update(cars)

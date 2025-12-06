@@ -14,7 +14,7 @@ if (!process.env.DATABASE_URL) {
 
 // تنظيم مجموعة الاتصالات لقاعدة البيانات PostgreSQL باستخدام URL المحدد في المتغير البيئي
 export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-export const db = drizzle({ client: pool, schema });
+export const db = drizzle(pool, { schema });
 
 // Assume this function exists, and export it from db.ts
 export async function checkDatabaseConnection(): Promise<boolean> {

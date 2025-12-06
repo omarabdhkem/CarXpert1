@@ -8,7 +8,7 @@ import { promisify } from "util";
 import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
 import connectPg from "connect-pg-simple";
-import { pool } from "./db";
+import { Pool } from "pg";
 
 declare global {
   namespace Express {
@@ -19,6 +19,9 @@ declare global {
 // تحويل الدالة scrypt إلى نسخة تدعم الوعود async/await
 const scryptAsync = promisify(scrypt);
 const PostgresqlStore = connectPg(session);
+
+// Create a standard pg Pool for session store
+const sessionPool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 async function hashPassword(password: string) {
   const salt = randomBytes(16).toString("hex");
@@ -39,7 +42,7 @@ export function setupAuth(app: Express) {
     resave: false,
     saveUninitialized: false,
     store: new PostgresqlStore({
-      pool,
+      pool: sessionPool,
       createTableIfMissing: true,
     }),
     cookie: {
@@ -68,7 +71,7 @@ export function setupAuth(app: Express) {
   );
 
   // تعريف عملية تخزين معلومات المستخدم في الجلسة
-passport.serializeUser((user, done) => done(null, user.id));
+  passport.serializeUser((user, done) => done(null, user.id));
   passport.deserializeUser(async (id: number, done) => {
     try {
       const user = await storage.getUser(id);
