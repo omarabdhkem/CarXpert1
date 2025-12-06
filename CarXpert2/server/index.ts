@@ -28,6 +28,16 @@ app.use(express.urlencoded({ extended: false }));
 // تقديم الملفات المرفوعة
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
+// Health check endpoint (before auth)
+app.get('/api/health', (_req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    version: '1.0.0',
+    service: 'CarXpert API'
+  });
+});
+
 // Request logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
@@ -35,7 +45,7 @@ app.use((req, res, next) => {
 
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (reqPath.startsWith("/api")) {
+    if (reqPath.startsWith("/api") && !reqPath.includes('/health')) {
       log(`${req.method} ${reqPath} ${res.statusCode} in ${duration}ms`);
     }
   });

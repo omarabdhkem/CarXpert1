@@ -3,3 +3,26 @@ dist/
 .env
 *.log
 client/node_modules/
+client/dist/
+
+# Uploads
+uploads/*
+!uploads/.gitkeep
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker/ssl/
+backups/
+
+# Coverage
+coverage/
+.nyc_output/
