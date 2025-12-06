@@ -3,6 +3,10 @@ import { setupAuth } from "./auth";
 import { setupVite, serveStatic, log } from "./vite";
 import { connectMongoDB } from "./db/mongodb";
 import { checkDatabaseConnection } from "./db";
+import carsRoutes from "./routes/cars";
+import dealershipsRoutes from "./routes/dealerships";
+import serviceCentersRoutes from "./routes/serviceCenters";
+import favoritesRoutes from "./routes/favorites";
 
 const app = express();
 // استخدام إعدادات لكشف المحتوى والعمل على تنسيق JSON URLEncoded
@@ -42,16 +46,18 @@ app.use((req, res, next) => {
     // إعداد المصادقة
     setupAuth(app);
 
-    // إضافة API routes هنا
-    // app.use('/api/cars', carsRoutes);
-    // app.use('/api/users', usersRoutes);
+    // إضافة API routes
+    app.use('/api/cars', carsRoutes);
+    app.use('/api/dealerships', dealershipsRoutes);
+    app.use('/api/service-centers', serviceCentersRoutes);
+    app.use('/api/favorites', favoritesRoutes);
 
     // معالجة الأخطاء middleware
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
       const status = err.status || err.statusCode || 500;
       const message = err.message || "خطأ في الخادم";
       // تسجيل رسالة الخطأ تظهر في console
-log(`خطأ: ${message}`);
+      log(`خطأ: ${message}`);
       res.status(status).json({ message });
     });
 
