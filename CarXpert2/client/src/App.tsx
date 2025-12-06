@@ -11,6 +11,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import FavoritesPage from './pages/FavoritesPage';
 import AddCarPage from './pages/AddCarPage';
+import AdminDashboard from './pages/admin/Dashboard';
 
 function App() {
   const { user, isLoading } = useUser();
@@ -37,6 +38,7 @@ function App() {
           <Route path="/register" component={RegisterPage} />
           <Route path="/favorites" component={FavoritesPage} />
           <Route path="/add-car" component={AddCarPage} />
+          <Route path="/admin" component={AdminDashboard} />
           <Route>
             <div className="container mx-auto px-4 py-16 text-center">
               <h1 className="text-4xl font-bold text-gray-800 mb-4">404</h1>

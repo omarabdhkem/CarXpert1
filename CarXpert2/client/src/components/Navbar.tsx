@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'wouter';
-import { Car, Menu, X, Heart, LogOut, Plus } from 'lucide-react';
+import { Car, Menu, X, Heart, LogOut, Plus, LayoutDashboard } from 'lucide-react';
 import { useState } from 'react';
 import { useLogout, User } from '../hooks/useAuth';
 
@@ -54,6 +54,13 @@ export default function Navbar({ user }: NavbarProps) {
           <div className="hidden md:flex items-center gap-4">
             {user ? (
               <>
+                <Link
+                  href="/admin"
+                  className="flex items-center gap-1 text-sm text-gray-600 hover:text-primary-600"
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  لوحة التحكم
+                </Link>
                 <Link
                   href="/add-car"
                   className="flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700"
@@ -126,6 +133,13 @@ export default function Navbar({ user }: NavbarProps) {
             <div className="pt-4 border-t mt-4">
               {user ? (
                 <>
+                  <Link
+                    href="/admin"
+                    className="block py-2 text-sm text-gray-600"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    لوحة التحكم
+                  </Link>
                   <Link
                     href="/add-car"
                     className="block py-2 text-sm text-primary-600"

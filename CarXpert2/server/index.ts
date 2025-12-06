@@ -7,8 +7,16 @@ import carsRoutes from "./routes/cars";
 import dealershipsRoutes from "./routes/dealerships";
 import serviceCentersRoutes from "./routes/serviceCenters";
 import favoritesRoutes from "./routes/favorites";
+import { apiLimiter, authLimiter } from "./middleware/rateLimit";
+import { securityHeaders, sanitizeBody } from "./middleware/security";
+import { simpleCsrf } from "./middleware/csrf";
 
 const app = express();
+
+// Security middleware
+app.use(securityHeaders);
+app.use(sanitizeBody);
+
 // استخدام إعدادات لكشف المحتوى والعمل على تنسيق JSON URLEncoded
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -45,6 +53,16 @@ app.use((req, res, next) => {
 
     // إعداد المصادقة
     setupAuth(app);
+
+    // Apply rate limiting to API routes
+    app.use('/api', apiLimiter);
+    
+    // Apply stricter rate limiting to auth routes
+    app.use('/api/login', authLimiter);
+    app.use('/api/register', authLimiter);
+    
+    // CSRF protection for API
+    app.use('/api', simpleCsrf);
 
     // إضافة API routes
     app.use('/api/cars', carsRoutes);
