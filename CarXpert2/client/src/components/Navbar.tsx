@@ -2,6 +2,7 @@ import { Link, useLocation } from 'wouter';
 import { Car, Menu, X, Heart, LogOut, Plus, LayoutDashboard } from 'lucide-react';
 import { useState } from 'react';
 import { useLogout, User } from '../hooks/useAuth';
+import NotificationsDropdown from './NotificationsDropdown';
 
 interface NavbarProps {
   user: User | null | undefined;
@@ -54,6 +55,7 @@ export default function Navbar({ user }: NavbarProps) {
           <div className="hidden md:flex items-center gap-4">
             {user ? (
               <>
+                <NotificationsDropdown />
                 <Link
                   href="/admin"
                   className="flex items-center gap-1 text-sm text-gray-600 hover:text-primary-600"

@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import path from "path";
 import { setupAuth } from "./auth";
 import { setupVite, serveStatic, log } from "./vite";
 import { connectMongoDB } from "./db/mongodb";
@@ -7,9 +8,12 @@ import carsRoutes from "./routes/cars";
 import dealershipsRoutes from "./routes/dealerships";
 import serviceCentersRoutes from "./routes/serviceCenters";
 import favoritesRoutes from "./routes/favorites";
+import uploadRoutes from "./routes/upload";
+import notificationsRoutes from "./routes/notifications";
 import { apiLimiter, authLimiter } from "./middleware/rateLimit";
 import { securityHeaders, sanitizeBody } from "./middleware/security";
 import { simpleCsrf } from "./middleware/csrf";
+import { initEmailTransporter } from "./services/notifications";
 
 const app = express();
 
@@ -21,15 +25,18 @@ app.use(sanitizeBody);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// تقديم الملفات المرفوعة
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
 // Request logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
-  const path = req.path;
+  const reqPath = req.path;
 
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      log(`${req.method} ${path} ${res.statusCode} in ${duration}ms`);
+    if (reqPath.startsWith("/api")) {
+      log(`${req.method} ${reqPath} ${res.statusCode} in ${duration}ms`);
     }
   });
 
@@ -51,6 +58,9 @@ app.use((req, res, next) => {
       log('تم الاتصال بنجاح بقاعدة البيانات MongoDB');
     }
 
+    // تهيئة خدمة البريد الإلكتروني
+    initEmailTransporter();
+
     // إعداد المصادقة
     setupAuth(app);
 
@@ -69,6 +79,8 @@ app.use((req, res, next) => {
     app.use('/api/dealerships', dealershipsRoutes);
     app.use('/api/service-centers', serviceCentersRoutes);
     app.use('/api/favorites', favoritesRoutes);
+    app.use('/api/upload', uploadRoutes);
+    app.use('/api/notifications', notificationsRoutes);
 
     // معالجة الأخطاء middleware
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
