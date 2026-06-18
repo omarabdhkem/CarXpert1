@@ -1,0 +1,48 @@
+# Dependencies
+node_modules
+client/node_modules
+
+# Build artifacts
+dist
+client/dist
+*.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Docker
+docker/ssl
+
+# Uploads (will be mounted as volume)
+uploads/*
+!uploads/.gitkeep
+
+# Development
+*.md
+!README.md
+tests
+__tests__
+*.test.ts
+*.spec.ts
+coverage
+.nyc_output
+
+# Misc
+*.log
+npm-debug.log*

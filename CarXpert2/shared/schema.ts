@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, text, integer, timestamp, boolean, pgEnum } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, text, integer, timestamp, boolean, pgEnum, decimal } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // تعريف الجداول

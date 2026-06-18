@@ -10,7 +10,7 @@ const useNeon = process.env.DATABASE_URL?.includes('neon.tech');
 
 // إعداد الاتصال بقاعدة البيانات
 let pool: Pool;
-let db: any;
+let db: ReturnType<typeof drizzle>;
 
 if (useNeon) {
   // استخدام Neon Database إذا كانت متاحة
@@ -21,10 +21,7 @@ if (useNeon) {
   });
   
   pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  
-  import('drizzle-orm/neon-serverless').then(({ drizzle: neonDrizzle }) => {
-    db = neonDrizzle(pool, { schema });
-  });
+  db = drizzle(pool, { schema });
 } else {
   // استخدام PostgreSQL العادي محليًا
   pool = new Pool({ connectionString: process.env.DATABASE_URL });

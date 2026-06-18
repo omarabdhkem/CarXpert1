@@ -1,23 +1,52 @@
 import express, { type Request, Response, NextFunction } from "express";
+import path from "path";
 import { setupAuth } from "./auth";
 import { setupVite, serveStatic, log } from "./vite";
 import { connectMongoDB } from "./db/mongodb";
 import { checkDatabaseConnection } from "./db";
+import carsRoutes from "./routes/cars";
+import dealershipsRoutes from "./routes/dealerships";
+import serviceCentersRoutes from "./routes/serviceCenters";
+import favoritesRoutes from "./routes/favorites";
+import uploadRoutes from "./routes/upload";
+import notificationsRoutes from "./routes/notifications";
+import { apiLimiter, authLimiter } from "./middleware/rateLimit";
+import { securityHeaders, sanitizeBody } from "./middleware/security";
+import { simpleCsrf } from "./middleware/csrf";
+import { initEmailTransporter } from "./services/notifications";
 
 const app = express();
+
+// Security middleware
+app.use(securityHeaders);
+app.use(sanitizeBody);
+
 // استخدام إعدادات لكشف المحتوى والعمل على تنسيق JSON URLEncoded
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// تقديم الملفات المرفوعة
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
+// Health check endpoint (before auth)
+app.get('/api/health', (_req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    version: '1.0.0',
+    service: 'CarXpert API'
+  });
+});
+
 // Request logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
-  const path = req.path;
+  const reqPath = req.path;
 
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      log(`${req.method} ${path} ${res.statusCode} in ${duration}ms`);
+    if (reqPath.startsWith("/api") && !reqPath.includes('/health')) {
+      log(`${req.method} ${reqPath} ${res.statusCode} in ${duration}ms`);
     }
   });
 
@@ -39,19 +68,36 @@ app.use((req, res, next) => {
       log('تم الاتصال بنجاح بقاعدة البيانات MongoDB');
     }
 
+    // تهيئة خدمة البريد الإلكتروني
+    initEmailTransporter();
+
     // إعداد المصادقة
     setupAuth(app);
 
-    // إضافة API routes هنا
-    // app.use('/api/cars', carsRoutes);
-    // app.use('/api/users', usersRoutes);
+    // Apply rate limiting to API routes
+    app.use('/api', apiLimiter);
+    
+    // Apply stricter rate limiting to auth routes
+    app.use('/api/login', authLimiter);
+    app.use('/api/register', authLimiter);
+    
+    // CSRF protection for API
+    app.use('/api', simpleCsrf);
+
+    // إضافة API routes
+    app.use('/api/cars', carsRoutes);
+    app.use('/api/dealerships', dealershipsRoutes);
+    app.use('/api/service-centers', serviceCentersRoutes);
+    app.use('/api/favorites', favoritesRoutes);
+    app.use('/api/upload', uploadRoutes);
+    app.use('/api/notifications', notificationsRoutes);
 
     // معالجة الأخطاء middleware
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
       const status = err.status || err.statusCode || 500;
       const message = err.message || "خطأ في الخادم";
       // تسجيل رسالة الخطأ تظهر في console
-log(`خطأ: ${message}`);
+      log(`خطأ: ${message}`);
       res.status(status).json({ message });
     });
 
